@@ -95,4 +95,16 @@ router.post(
   xlmController.postMultiSigPayment,
 );
 
+// manageData
+router.post('/manageData', mw.xlmNetwork, xlmController.postManageData);
+
+// decodeXDR
+router.post(
+  '/decodeEnvelopeXDR',
+  mw.xlmNetwork,
+  xlmController.postDecodeEnvelopeXDR,
+);
+
+// accountMerge
+router.post('/accountMerge', mw.xlmNetwork, xlmController.postAccountMerge);
 module.exports = router;

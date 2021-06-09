@@ -125,6 +125,7 @@ const postAccount = async (req, res) => {
       createFromSecret, // 초기잔액을 충천할 계정 비밀키
       startingBalance, // 초기잔액 수량
       memo,
+      maxTime,
     } = req.body;
     const keypair = StellarSdk.Keypair.fromSecret(createFromSecret);
     const txOptions = {
@@ -143,7 +144,7 @@ const postAccount = async (req, res) => {
         }),
       )
       .addMemo(StellarSdk.Memo.text(memo || 'Create Account'))
-      .setTimeout(xlmUtils.TIMEOUT)
+      .setTimeout(maxTime || xlmUtils.TIMEOUT)
       .build();
     transaction.sign(keypair);
     const result = await server.submitTransaction(transaction);
@@ -160,7 +161,7 @@ const postAccount = async (req, res) => {
 
 const postPayment = async (req, res) => {
   try {
-    const {toAddress, amount, memo} = req.body;
+    const {toAddress, amount, memo, maxTime} = req.body;
     const {asset, server} = req;
     const txOptions = {
       fee: StellarSdk.BASE_FEE,
@@ -181,7 +182,7 @@ const postPayment = async (req, res) => {
         }),
       )
       .addMemo(memo ? StellarSdk.Memo.text(memo) : StellarSdk.Memo.none())
-      .setTimeout(xlmUtils.TIMEOUT)
+      .setTimeout(maxTime || xlmUtils.TIMEOUT)
       .build();
     transaction.sign(keypair);
     const resp = await server.submitTransaction(transaction);
@@ -199,6 +200,7 @@ const postPayment = async (req, res) => {
 const postTrustAsset = async (req, res) => {
   try {
     const {asset, server} = req;
+    const {maxTime} = req.body;
     const txOptions = {
       fee: StellarSdk.BASE_FEE,
       networkPassphrase: req.networkPassphrase,
@@ -211,7 +213,7 @@ const postTrustAsset = async (req, res) => {
       txOptions,
     )
       .addOperation(StellarSdk.Operation.changeTrust({asset}))
-      .setTimeout(xlmUtils.TIMEOUT)
+      .setTimeout(maxTime || xlmUtils.TIMEOUT)
       .build();
     transaction.sign(keypair);
     const resp = await server.submitTransaction(transaction);
@@ -229,7 +231,7 @@ const postTrustAsset = async (req, res) => {
 const postChangeTrustAsset = async (req, res) => {
   try {
     const {asset, server} = req;
-    const {limit} = req.body;
+    const {maxTime, limit} = req.body;
     const txOptions = {
       fee: StellarSdk.BASE_FEE,
       networkPassphrase: req.networkPassphrase,
@@ -242,7 +244,7 @@ const postChangeTrustAsset = async (req, res) => {
       txOptions,
     )
       .addOperation(StellarSdk.Operation.changeTrust({asset, limit}))
-      .setTimeout(xlmUtils.TIMEOUT)
+      .setTimeout(maxTime || xlmUtils.TIMEOUT)
       .build();
     transaction.sign(keypair);
     const resp = await server.submitTransaction(transaction);
@@ -310,7 +312,7 @@ const getTxId = async (req, res) => {
 const postMultiSig = async (req, res) => {
   try {
     const {server, networkPassphrase} = req;
-    const {accounts} = req.body;
+    const {accounts, maxTime} = req.body;
     const rootKeypair = StellarSdk.Keypair.fromSecret(accounts['0'].secretKey);
     const secondaryKeypair = StellarSdk.Keypair.fromSecret(
       accounts['1'].secretKey,
@@ -345,7 +347,7 @@ const postMultiSig = async (req, res) => {
           highThreshold: 2, // make sure to have enough weight to add up to the high threshold!
         }),
       )
-      .setTimeout(xlmUtils.TIMEOUT)
+      .setTimeout(maxTime || xlmUtils.TIMEOUT)
       .build();
     // only need to sign with the root signer as the 2nd signer won't be
     // added to the account till after this transaction completes
@@ -365,7 +367,7 @@ const postMultiSig = async (req, res) => {
 const postMultiSigPayment = async (req, res) => {
   try {
     const {asset, server, networkPassphrase} = req;
-    const {accounts, toAddress, amount, memo} = req.body;
+    const {accounts, toAddress, amount, memo, maxTime} = req.body;
     const rootKeypair = StellarSdk.Keypair.fromSecret(accounts['0'].secretKey);
     const secondaryKeypair = StellarSdk.Keypair.fromSecret(
       accounts['1'].secretKey,
@@ -390,7 +392,7 @@ const postMultiSigPayment = async (req, res) => {
         }),
       )
       .addMemo(memo ? StellarSdk.Memo.text(memo) : StellarSdk.Memo.none())
-      .setTimeout(xlmUtils.TIMEOUT)
+      .setTimeout(maxTime || xlmUtils.TIMEOUT)
       .build();
 
     // Signing MultiSig
@@ -403,6 +405,110 @@ const postMultiSigPayment = async (req, res) => {
       res,
       500,
       `E0000 - postMultiSigPayment`,
+      xlmUtils.parseOperationError(e),
+    );
+  }
+};
+
+const postManageData = async (req, res) => {
+  try {
+    const {server, networkPassphrase} = req;
+    const {secretKey, dataKey, dataValue, memo, maxTime} = req.body;
+    const txOptions = {
+      fee: StellarSdk.BASE_FEE,
+      networkPassphrase: req.networkPassphrase,
+    };
+    const keypair = StellarSdk.Keypair.fromSecret(secretKey);
+    const fromAddress = keypair.publicKey();
+    const loadedAccount = await server.loadAccount(fromAddress);
+    const transaction = new StellarSdk.TransactionBuilder(
+      loadedAccount,
+      txOptions,
+    )
+      .addOperation(
+        // Maximum 64 bytes
+        // https://developers.stellar.org/docs/start/list-of-operations/#manage-data
+        StellarSdk.Operation.manageData({
+          name: dataKey,
+          value: dataValue, // Data is deleted when dataValue is null
+        }),
+      )
+      .addMemo(memo ? StellarSdk.Memo.text(memo) : StellarSdk.Memo.none())
+      .setTimeout(maxTime || xlmUtils.TIMEOUT)
+      .build();
+
+    // const unsignedTx = transaction.toEnvelope().toXDR('base64');
+    // console.log(unsignedTx);
+    transaction.sign(keypair);
+    // const signedTx = transaction.toEnvelope().toXDR('base64')
+    // const tx = new StellarSdk.Transaction(signedTx, networkPassphrase);
+    const resp = await server.submitTransaction(transaction);
+    return cwr.createWebResp(res, 200, resp);
+  } catch (e) {
+    return cwr.errorWebResp(
+      res,
+      500,
+      `E0000 - postManageData`,
+      xlmUtils.parseOperationError(e),
+    );
+  }
+};
+
+const postDecodeEnvelopeXDR = async (req, res) => {
+  try {
+    // Reference from
+    // https://github.com/stellar/js-stellar-sdk/tree/master/docs/reference#handling-responses
+    const {envelopeXDR} = req.body;
+    const {networkPassphrase} = req;
+    // const result = StellarSdk.xdr.TransactionEnvelope.fromXDR(envelopeXDR, 'base64')
+    // return cwr.createWebResp(res, 200, result);
+    const transaction = new StellarSdk.Transaction(
+      envelopeXDR,
+      networkPassphrase,
+    );
+    return cwr.createWebResp(res, 200, transaction);
+  } catch (e) {
+    return cwr.errorWebResp(
+      res,
+      500,
+      `E0000 - postDecodeEnvelopeXDR`,
+      xlmUtils.parseOperationError(e),
+    );
+  }
+};
+
+const postAccountMerge = async (req, res) => {
+  try {
+    const {server} = req;
+    const {secretKey, destination} = req.body;
+    const txOptions = {
+      fee: StellarSdk.BASE_FEE,
+      networkPassphrase: req.networkPassphrase,
+    };
+    const keypair = StellarSdk.Keypair.fromSecret(secretKey);
+    const fromAddress = keypair.publicKey();
+    const loadedAccount = await server.loadAccount(fromAddress);
+    const transaction = new StellarSdk.TransactionBuilder(
+      loadedAccount,
+      txOptions,
+    )
+      .addOperation(
+        // Maximum 64 bytes
+        // https://developers.stellar.org/docs/start/list-of-operations/#manage-data
+        StellarSdk.Operation.accountMerge({
+          destination,
+        }),
+      )
+      .setTimeout(xlmUtils.TIMEOUT)
+      .build();
+    transaction.sign(keypair);
+    const resp = await server.submitTransaction(transaction);
+    return cwr.createWebResp(res, 200, resp);
+  } catch (e) {
+    return cwr.errorWebResp(
+      res,
+      500,
+      `E0000 - postAccountMerge`,
       xlmUtils.parseOperationError(e),
     );
   }
@@ -425,4 +531,7 @@ module.exports = {
   getTxId,
   postMultiSig,
   postMultiSigPayment,
+  postManageData,
+  postDecodeEnvelopeXDR,
+  postAccountMerge,
 };
