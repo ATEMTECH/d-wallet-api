@@ -1,9 +1,12 @@
 const cwr = require('../utils/createWebResp');
 const tokenABI = require('../config/ETH/StandardTokenABI');
 const bip39 = require('bip39');
+const {Wallet} = require("ethereumjs-wallet");
 const ethers = require('ethers');
+const keythereum = require("keythereum");
 const eth = require('../config/ETH/eth');
 const axios = require('axios');
+const fs = require("fs");
 
 const postDecodeMnemonic = async (req, res) => {
   try {
@@ -135,6 +138,35 @@ const postSendToken = async (req, res) => {
   }
 };
 
+const postSubscribe = async (req, res) => {
+  try {
+    const {address} = req.body;
+    const subscription = await req.web3.eth.subscribe('logs', {
+      address,
+    }, function(error, result){
+      if (!error)
+        console.log(result);
+    })
+      .on("connected", function(subscriptionId){
+        console.log('connected => ', subscriptionId);
+      })
+      .on("data", function(log){
+        console.log('data => ', log);
+      })
+      .on("changed", function(log){
+        console.log('changed => ', log);
+      });
+    // unsubscribes the subscription
+    // subscription.unsubscribe(function(error, success){
+    //   if(success)
+    //     console.log('Successfully unsubscribed!');
+    // });
+    return cwr.createWebResp(res, 200, {'success': true});
+  } catch (e) {
+    return cwr.errorWebResp(res, 500, 'E0000 - postSubscribe', e.message);
+  }
+};
+
 const postGenerateMnemonic = async (req, res) => {
   try {
     const mnemonic = bip39.generateMnemonic();
@@ -166,6 +198,48 @@ const getValidateMnemonic = async (req, res) => {
     return cwr.errorWebResp(res, 500, 'E0000 - GetValidateMnemonic', e.message);
   }
 };
+
+const postDecodeKeystore = async (req, res) => {
+  try {
+    const {keystore, password} = req.body;
+    const wallet = await ethers.Wallet.fromEncryptedJson(JSON.stringify(keystore), password);
+    const pk = keythereum.recover(password, keystore);
+    const privateKey = pk.toString('hex');
+    return cwr.createWebResp(res, 200, {wallet, privateKey});
+  } catch (e) {
+    return cwr.errorWebResp(res, 500, 'E0000 - postDecodeKeystore', e.message);
+  }
+};
+
+// const postPrivateKeyToKeystore = async (req, res) => {
+//   try {
+//     const {privateKey, password} = req.body;
+//     const pk = new Buffer.from(privateKey, 'hex');
+//     const account = Wallet.fromV3(pk);
+//     return cwr.createWebResp(res, 200, {jsonContent});
+//   } catch (e) {
+//     return cwr.errorWebResp(res, 500, 'E0000 - postPrivateKeyToKeystore', e.message);
+//   }
+// };
+
+
+const postPrivateKeyToKeystore = async (req, res) => {
+  try {
+    const {privateKey, password} = req.body;
+    const pk = new Buffer.from(privateKey, 'hex')
+    const account = Wallet.fromPrivateKey(pk)
+    const jsonContent = JSON.stringify(account.toV3(password));
+
+    // Create Files
+    const address = account.getAddress().toString('hex')
+    const fileName = `UTC--${new Date().toISOString().replace(/[:]/g, '-')}--${address}`
+    fs.writeFileSync(fileName, jsonContent)
+    return cwr.createWebResp(res, 200, {jsonContent});
+  } catch (e) {
+    return cwr.errorWebResp(res, 500, 'E0000 - postPrivateKeyToKeystore', e.message);
+  }
+};
+
 
 const getGasPrice = async (req, res) => {
   try {
@@ -353,8 +427,11 @@ module.exports = {
   getTokenBalance,
   postSendEther,
   postSendToken,
+  postSubscribe,
   postGenerateMnemonic,
   getValidateMnemonic,
+  postDecodeKeystore,
+  postPrivateKeyToKeystore,
   getGasPrice,
   getGasPriceFromNet,
   getTxWithAddress,

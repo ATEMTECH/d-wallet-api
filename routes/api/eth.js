@@ -18,9 +18,23 @@ router.post('/sendEther', mw.web3, ethController.postSendEther);
 
 router.post('/sendToken', mw.web3, ethController.postSendToken);
 
+// todo
+router.post('/subscribe', mw.web3, ethController.postSubscribe);
+
 router.post('/generateMnemonic', ethController.postGenerateMnemonic);
 
 router.get('/validateMnemonic', ethController.getValidateMnemonic);
+
+router.post(
+  '/decodeKeystore',
+  ethController.postDecodeKeystore,
+);
+
+// todo Doesn't work, need to check
+router.post(
+  '/privateKeyToKeystore',
+  ethController.postPrivateKeyToKeystore,
+);
 
 router.get('/gasPrice', mw.web3, ethController.getGasPrice);
 
