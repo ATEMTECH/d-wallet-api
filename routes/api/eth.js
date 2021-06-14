@@ -25,16 +25,10 @@ router.post('/generateMnemonic', ethController.postGenerateMnemonic);
 
 router.get('/validateMnemonic', ethController.getValidateMnemonic);
 
-router.post(
-  '/decodeKeystore',
-  ethController.postDecodeKeystore,
-);
+router.post('/decodeKeystore', ethController.postDecodeKeystore);
 
 // todo Doesn't work, need to check
-router.post(
-  '/privateKeyToKeystore',
-  ethController.postPrivateKeyToKeystore,
-);
+router.post('/privateKeyToKeystore', ethController.postPrivateKeyToKeystore);
 
 router.get('/gasPrice', mw.web3, ethController.getGasPrice);
 
@@ -53,5 +47,7 @@ router.get('/tx', mw.web3, ethController.getTx);
 router.get('/block', mw.web3, ethController.getBlock);
 
 router.post('/addressFromPrivateKey', ethController.postAddressFromPrivate);
+
+router.get('/getAbi', mw.etherscan, ethController.getAbi);
 
 module.exports = router;

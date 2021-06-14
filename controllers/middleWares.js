@@ -130,7 +130,7 @@ const etherscan = async (req, res, next) => {
     );
     next();
   } catch (e) {
-    return cwr.errorWebResp(res, 500, `E0000 - infuraBaseUrl`, e.message);
+    return cwr.errorWebResp(res, 500, `E0000 - etherscan`, e.message);
   }
 };
 
