@@ -90,7 +90,7 @@ const web3 = async (req, res, next) => {
       );
     }
     req.web3 = new Web3(req.httpProvider);
-    const blockInfo = await req.web3.eth.net.getId();
+    const blockInfo = await req.web3.eth.net.getId(); // network number
     next();
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - infuraBaseUrl`, e.message);
@@ -123,7 +123,17 @@ const checkBTCNetwork = async (req, res, next) => {
 
 const etherscan = async (req, res, next) => {
   try {
-    const endpoint = req.body.endpoint?.trim() || req.query.endpoint?.trim();
+    const endpoint =
+      req.body.endpoint?.trim() ||
+      req.query.endpoint?.trim() ||
+      req.params.endpoint?.trim;
+    if (!eth.etherscanEndpoints.includes(endpoint)) {
+      return cwr.errorWebResp(
+        res,
+        500,
+        `E0000 - endpoint must be one of ${eth.etherscanEndpoints}`,
+      );
+    }
     req.etherscan = require('etherscan-api').init(
       process.env.ETHERSCAN_API_KEY,
       endpoint,

@@ -3,7 +3,6 @@ const switchBaseUrl = (network) => {
   if (endpoint) {
     return {custom: false, baseUrl: endpoint};
   } else if (network.indexOf('http') > -1) {
-    console.log('select custom endpoint: ', network);
     return {custom: true, baseUrl: network};
   } else {
     throw 'switchBaseUrl : endpoint error (' + network + ')';
@@ -22,6 +21,8 @@ const switchBaseUrl = (network) => {
   */
 };
 
+const etherscanEndpoints = ['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'];
+
 const defaultGasAvg = 60000;
 const defaultGasMin = 21000;
 const defaultGasMax = 7000000;
@@ -38,6 +39,7 @@ const ethereumEndpoint = {
 
 module.exports = {
   switchBaseUrl,
+  etherscanEndpoints,
   defaultGasAvg,
   defaultGasMin,
   defaultGasMax,

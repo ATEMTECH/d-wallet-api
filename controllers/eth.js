@@ -442,7 +442,7 @@ const getAbi = async (req, res) => {
     const unquotedAbi = JSON.parse(abi.result);
     return cwr.createWebResp(res, 200, {abi: unquotedAbi});
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - getAbi', e.message);
+    return cwr.errorWebResp(res, 500, 'E0000 - getAbi', e || e.message);
   }
 };
 
