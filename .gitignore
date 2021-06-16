@@ -409,3 +409,10 @@ config.json
 # Custom Settings
 logs/*
 readme_settings.md
+db/.env
+db/data-dev
+db/data-local
+db/data-prod
+db/mongo-init-dev.js
+db/mongo-init-local.js
+db/mongo-init-prod.js
