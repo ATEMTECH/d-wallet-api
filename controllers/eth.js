@@ -256,7 +256,7 @@ const postPrivateKeyToKeystore = async (req, res) => {
 const getGasPrice = async (req, res) => {
   try {
     let lastGasPrice = {};
-    let blockNumber = await req.web3.eth.getBlockNumber();
+    let blockNumber = req.query.blockNumber || await req.web3.eth.getBlockNumber();
     let getBlock = async () => {
       let i = 0;
       while (true) {

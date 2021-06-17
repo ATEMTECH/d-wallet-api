@@ -14,6 +14,8 @@ const {
   Network,
   Market,
 } = require('@aave/protocol-js');
+const TronWeb = require('tronweb');
+
 
 ////////////////////// Middleware for XLM //////////////////////
 const isValidMnemonic = async (req, res, next) => {
@@ -216,6 +218,32 @@ const aaveNetwork = async (req, res, next) => {
   }
 };
 
+////////////////////// Middleware for Tron //////////////////////
+const tronNetwork = async (req, res, next) => {
+  try {
+    req.tronWeb = new TronWeb({
+      fullHost: 'https://api.trongrid.io',
+      headers: { "TRON-PRO-API-KEY": process.env.TRONGRID_PUBLIC_KEY },
+      //privateKey: 'your private key'
+    });
+    next();
+  } catch (e) {
+    return cwr.errorWebResp(res, 500, `E0000 - tronNetwork`, e.message);
+  }
+};
+
+
+const tronSendRawTransaction = async (req, res) => {
+  try {
+    const {privateKey} = req.body;
+    const signedtxn = await req.tronWeb.trx.sign(req.txInfo, privateKey);
+    const receipt = await req.tronWeb.trx.sendRawTransaction(signedtxn);
+    return cwr.createWebResp(res, 200, receipt);
+  } catch (e) {
+    return cwr.errorWebResp(res, 500, `E0000 - postFreeze`, e.message);
+  }
+};
+
 module.exports = {
   isValidMnemonic,
   xlmNetwork,
@@ -227,4 +255,6 @@ module.exports = {
   btcNetwork,
   aaveNetwork,
   btcLastBlockHash,
+  tronNetwork,
+  tronSendRawTransaction
 };
