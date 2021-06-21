@@ -56,7 +56,7 @@ const getTronPowerInfo = async (req, res) => {
   try {
     const {address} = req.query;
     const bandwidth = await req.tronWeb.trx.getBandwidth(address);
-    const energyFee = await req.tronWeb.trx.getEnergy(address);
+    const energyFee = 0; //await req.tronWeb.trx.getEnergy(address);
     return cwr.createWebResp(res, 200, {bandwidth, energyFee});
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - getTronPowerInfo`, e.message);
@@ -128,10 +128,6 @@ const getListWitnesses = async (req, res) => {
 const postUnFreeze = async (req, res, next) => {
   try {
     const {resource, ownerAddress, receiverAddress, options} = req.body;
-    if(resource != "BANDWIDTH" || resource != "ENERGY")
-    {
-      return cwr.errorWebResp(res, 500, `E0000 - postUnFreeze`, "resource != \"BANDWIDTH\" || resource != \"ENERGY\"");
-    }
     req.txInfo = await req.tronWeb.transactionBuilder.unfreezeBalance(resource, ownerAddress, receiverAddress, options);
     next();
   } catch (e) {
@@ -154,7 +150,7 @@ const getLatestBlock = async (req, res) => {
 const postWithdrawBalance = async (req, res) => {
   try {
     const {owner_address} = req.body;
-    const url = 'https://api.shasta.trongrid.io/wallet/withdrawbalance';
+    const url = 'https://api.trongrid.io/wallet/withdrawbalance';
     const options = {
       method: 'POST',
       headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
@@ -173,7 +169,7 @@ const postWithdrawBalance = async (req, res) => {
       .then((res) => res.json())
       .then((json) => console.log(json))
       .catch((err) => console.error('error:' + err));
-    return cwr.createWebResp(res, 200, true);
+    return cwr.createWebResp(res, 200, result);
   }
 };
 
