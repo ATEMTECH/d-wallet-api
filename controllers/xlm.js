@@ -140,7 +140,7 @@ const postAccount = async (req, res) => {
       .addOperation(
         StellarSdk.Operation.createAccount({
           destination: toAddress,
-          startingBalance, // 계정 유지를 위한 최소 1XLM 이상 필요
+          startingBalance, // Minimum balance is 1 XLM
         }),
       )
       .addMemo(StellarSdk.Memo.text(memo || 'Create Account'))

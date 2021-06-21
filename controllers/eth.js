@@ -1,12 +1,14 @@
-const cwr = require('../utils/createWebResp');
-const tokenABI = require('../config/ETH/StandardTokenABI');
 const bip39 = require('bip39');
 const {Wallet} = require('ethereumjs-wallet');
 const ethers = require('ethers');
 const keythereum = require('keythereum');
-const eth = require('../config/ETH/eth');
 const axios = require('axios');
 const fs = require('fs');
+const eth = require('../config/ETH/eth');
+const ethBlockService = require('../services/ethBlock');
+const {StandardABI} = require('../config/ETH/StandardTokenABI');
+const cwr = require('../utils/createWebResp');
+const {SyncGetBlock} = require('../utils/eth/SyncGetBlock');
 
 const postDecodeMnemonic = async (req, res) => {
   try {
@@ -30,10 +32,7 @@ const postDecodeMnemonic = async (req, res) => {
 const getTokenBalance = async (req, res) => {
   try {
     const {walletAddress, contractAddress} = req.query;
-    const contract = new req.web3.eth.Contract(
-      tokenABI.StandardABI,
-      contractAddress,
-    );
+    const contract = new req.web3.eth.Contract(StandardABI, contractAddress);
     const decimal = Math.pow(10, await contract.methods.decimals().call());
     const balance =
       (await contract.methods.balanceOf(walletAddress).call()) / decimal;
@@ -104,7 +103,7 @@ const postSendToken = async (req, res) => {
     } = req.body;
 
     const contract = new req.web3.eth.Contract(
-      tokenABI.StandardABI,
+      ATEM_ABI.ATEM_ABI,
       contractAddress,
     );
     const decimal = Math.pow(10, await contract.methods.decimals().call());
@@ -255,24 +254,25 @@ const postPrivateKeyToKeystore = async (req, res) => {
 
 const getGasPrice = async (req, res) => {
   try {
-    let lastGasPrice = {};
-    let blockNumber = req.query.blockNumber || await req.web3.eth.getBlockNumber();
-    let getBlock = async () => {
+    const lastGasPrice = {};
+    const blockNumber =
+      req.query.blockNumber || (await req.web3.eth.getBlockNumber());
+    const getBlock = async () => {
       let i = 0;
       while (true) {
         if (blockNumber - i < 1) {
           throw 'end block number';
         }
-        let block = await req.web3.eth.getBlock(blockNumber - i);
-        i = i + 1;
+        const block = await req.web3.eth.getBlock(blockNumber - i);
+        i += 1;
         if (block.transactions.length > 0) {
           return block;
         }
       }
     };
-    let block = await getBlock();
-    let txs = [];
-    let txsGas = [];
+    const block = await getBlock();
+    const txs = [];
+    const txsGas = [];
     const chunkSize =
       block.transactions.length / Math.sqrt(block.transactions.length);
     for (let txid = 0; txid < block.transactions.length; txid++) {
@@ -291,7 +291,7 @@ const getGasPrice = async (req, res) => {
 
     const chunkedLinks = arrayToChunks(txs, chunkSize);
     let txLength = 0;
-    for (let chunk of chunkedLinks) {
+    for (const chunk of chunkedLinks) {
       const resolvedProducts = await Promise.all(chunk);
       resolvedProducts.forEach((product) => {
         if (product.input.length === 138) {
@@ -300,7 +300,7 @@ const getGasPrice = async (req, res) => {
         }
       });
     }
-    let sumGas = txsGas.reduce((a, b) => parseInt(a) + parseInt(b), 0);
+    const sumGas = txsGas.reduce((a, b) => parseInt(a) + parseInt(b), 0);
     lastGasPrice.network = req.endpoint;
     lastGasPrice.blockNumber = block.number;
     lastGasPrice.avg = req.web3.utils.fromWei(
@@ -446,6 +446,28 @@ const getAbi = async (req, res) => {
   }
 };
 
+/*
+ * Initialize Sync Block on DB.
+ */
+const postSyncBlock = async (req, res) => {
+  try {
+    const {blockNumber} = req.query;
+    const {web3, network} = req;
+    // const EthBlocksDoc = await ethBlockService.syncGetBlock(network, blockNumber, hash, transactions);
+    // const syncGetBlock = new SyncGetBlock();
+    // const timerId = syncGetBlock.web3SetInterval(web3, blockNumber);
+
+    const ethBlockDoc = await ethBlockService.increaseBlockIndex(
+      'ETH',
+      network,
+    );
+
+    return cwr.createWebResp(res, 200, {success: {...ethBlockDoc}});
+  } catch (e) {
+    return cwr.errorWebResp(res, 500, 'E0000 - postSyncBlock', e || e.message);
+  }
+};
+
 module.exports = {
   postDecodeMnemonic,
   getEtherBalance,
@@ -465,4 +487,5 @@ module.exports = {
   getBlock,
   postAddressFromPrivate,
   getAbi,
+  postSyncBlock,
 };

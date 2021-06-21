@@ -7,11 +7,30 @@ process.env.NODE_ENV =
   process.env.NODE_ENV.trim().toLowerCase() === 'production'
     ? 'production'
     : 'development';
+
+require('dotenv').config();
+
 console.log('NODE_ENV => ', process.env.NODE_ENV);
 console.log('NODE_APP_INSTANCE => ', process.env.NODE_APP_INSTANCE);
 console.log('__dir => ', __dirname);
 
-require('dotenv').config();
+const checkEnv = require('check-env');
+
+checkEnv([
+  'INFURA_PROJECT_ID',
+  'INFURA_PROJECT_SECRET',
+  'ETHERSCAN_API_KEY',
+  'BTC_HOST',
+  'BTC_USERNAME',
+  'BTC_USER_PASSWORD',
+  'BTC_MAINNET_PORT',
+  'BTC_TESTNET_PORT',
+  'BTC_REGTEST_PORT',
+  'MONGO_DB_URL',
+  'MONGO_DB_NAME',
+  'MONGO_DB_USER',
+  'MONGO_DB_PASSWORD',
+]);
 
 const createError = require('http-errors');
 const express = require('express');
@@ -29,6 +48,11 @@ const aaveRouter = require('./routes/api/aave');
 const tronRouter = require('./routes/api/tron');
 
 const app = express();
+
+// DB Connection
+const {mongooseConnect} = require('./utils/db/mongooseConnect');
+
+mongooseConnect().then();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
