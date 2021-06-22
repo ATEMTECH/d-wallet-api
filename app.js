@@ -28,6 +28,7 @@ const ethRouter = require('./routes/api/eth');
 const aaveRouter = require('./routes/api/aave');
 const tronRouter = require('./routes/api/tron');
 const atemRouter = require('./routes/api/atem');
+const orbsRouter = require('./routes/api/orbs');
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use(`${version}/eth`, ethRouter);
 app.use(`${version}/aave`, aaveRouter);
 app.use(`${version}/tron`, tronRouter);
 app.use(`${version}/atem`, atemRouter);
+app.use(`${version}/orbs`, orbsRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
