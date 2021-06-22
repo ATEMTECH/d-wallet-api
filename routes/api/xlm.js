@@ -107,4 +107,5 @@ router.post(
 
 // accountMerge
 router.post('/accountMerge', mw.xlmNetwork, xlmController.postAccountMerge);
+
 module.exports = router;

@@ -1,5 +1,5 @@
-const cwr = require('../utils/createWebResp');
 const fetch = require('node-fetch');
+const cwr = require('../utils/createWebResp');
 
 const tronSendRawTransaction = async (req, res) => {
   try {
@@ -25,7 +25,11 @@ const getBalance = async (req, res) => {
 const postSendTrx = async (req, res) => {
   try {
     const {myPrivateKey, toAddress, amount} = req.body;
-    const txInfo = await req.tronWeb.trx.sendTransaction(toAddress, amount, myPrivateKey);
+    const txInfo = await req.tronWeb.trx.sendTransaction(
+      toAddress,
+      amount,
+      myPrivateKey,
+    );
     return cwr.createWebResp(res, 200, txInfo);
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - postSendTRX`, e.message);
@@ -45,7 +49,12 @@ const getTrcBalance = async (req, res) => {
 const postSendTrc = async (req, res) => {
   try {
     const {myPrivateKey, toAddress, amount, tokenID} = req.body;
-    const txInfo = await req.tronWeb.trx.sendToken(toAddress, amount, tokenID, myPrivateKey);
+    const txInfo = await req.tronWeb.trx.sendToken(
+      toAddress,
+      amount,
+      tokenID,
+      myPrivateKey,
+    );
     return cwr.createWebResp(res, 200, txInfo);
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - postSendTRC`, e.message);
@@ -56,12 +65,12 @@ const getTronPowerInfo = async (req, res) => {
   try {
     const {address} = req.query;
     const bandwidth = await req.tronWeb.trx.getBandwidth(address);
-    const energyFee = 0; //await req.tronWeb.trx.getEnergy(address);
+    const energyFee = await req.tronWeb.trx.getEnergy(address);
     return cwr.createWebResp(res, 200, {bandwidth, energyFee});
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - getTronPowerInfo`, e.message);
   }
-}
+};
 
 const getCheckNetworkStatus = async (req, res) => {
   try {
@@ -73,7 +82,7 @@ const getCheckNetworkStatus = async (req, res) => {
     const result = await fetch(url, options)
       .then((res) => res.json())
       .then((json) => console.log(json))
-      .catch((err) => console.error('error:' + err));
+      .catch((err) => console.error(`error:${err}`));
 
     return cwr.createWebResp(res, 200, true);
   } catch (e) {
@@ -88,8 +97,16 @@ const getCheckNetworkStatus = async (req, res) => {
 
 const postFreeze = async (req, res, next) => {
   try {
-    const {amount, duration, resource, ownerAddress, receiverAddress, options} = req.body;
-    req.txInfo = await req.tronWeb.transactionBuilder.freezeBalance(req.tronWeb.toSun(amount), duration, resource, ownerAddress, receiverAddress, options);
+    const {amount, duration, resource, ownerAddress, receiverAddress, options} =
+      req.body;
+    req.txInfo = await req.tronWeb.transactionBuilder.freezeBalance(
+      req.tronWeb.toSun(amount),
+      duration,
+      resource,
+      ownerAddress,
+      receiverAddress,
+      options,
+    );
     next();
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - postFreeze`, e.message);
@@ -99,17 +116,29 @@ const postFreeze = async (req, res, next) => {
 const postVote = async (req, res, next) => {
   try {
     const {votes, voterAddress, options} = req.body;
-    req.txInfo = await req.tronWeb.transactionBuilder.vote(votes, voterAddress, options);
+    req.txInfo = await req.tronWeb.transactionBuilder.vote(
+      votes,
+      voterAddress,
+      options,
+    );
     next();
   } catch (e) {
-    return cwr.errorWebResp(res, 500, `E0000 - postVoteWitnessAccount`, e.message);
+    return cwr.errorWebResp(
+      res,
+      500,
+      `E0000 - postVoteWitnessAccount`,
+      e.message,
+    );
   }
 };
 
 const postGetReward = async (req, res, next) => {
   try {
     const {address, options} = req.body;
-    req.txInfo = await req.tronWeb.transactionBuilder.withdrawBlockRewards(address, options);
+    req.txInfo = await req.tronWeb.transactionBuilder.withdrawBlockRewards(
+      address,
+      options,
+    );
     next();
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - postGetReward`, e.message);
@@ -128,7 +157,20 @@ const getListWitnesses = async (req, res) => {
 const postUnFreeze = async (req, res, next) => {
   try {
     const {resource, ownerAddress, receiverAddress, options} = req.body;
-    req.txInfo = await req.tronWeb.transactionBuilder.unfreezeBalance(resource, ownerAddress, receiverAddress, options);
+    if (resource != 'BANDWIDTH' || resource != 'ENERGY') {
+      return cwr.errorWebResp(
+        res,
+        500,
+        `E0000 - postUnFreeze`,
+        'resource != "BANDWIDTH" || resource != "ENERGY"',
+      );
+    }
+    req.txInfo = await req.tronWeb.transactionBuilder.unfreezeBalance(
+      resource,
+      ownerAddress,
+      receiverAddress,
+      options,
+    );
     next();
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - postUnFreeze`, e.message);
@@ -150,12 +192,12 @@ const getLatestBlock = async (req, res) => {
 const postWithdrawBalance = async (req, res) => {
   try {
     const {owner_address} = req.body;
-    const url = 'https://api.trongrid.io/wallet/withdrawbalance';
+    const url = 'https://api.shasta.trongrid.io/wallet/withdrawbalance';
     const options = {
       method: 'POST',
       headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
       body: JSON.stringify({
-        owner_address: owner_address,
+        owner_address,
         visible: true,
       }),
     };
@@ -168,8 +210,8 @@ const postWithdrawBalance = async (req, res) => {
     const result = fetch(url, options)
       .then((res) => res.json())
       .then((json) => console.log(json))
-      .catch((err) => console.error('error:' + err));
-    return cwr.createWebResp(res, 200, result);
+      .catch((err) => console.error(`error:${err}`));
+    return cwr.createWebResp(res, 200, true);
   }
 };
 
@@ -182,7 +224,12 @@ const getNextMaintenanceTime = async (req, res) => {
     const dateTime = new Date(data?.num);
     return cwr.createWebResp(res, 200, {dateTime, data});
   } catch (e) {
-    return cwr.errorWebResp(res, 500, `E0000 - getNextMaintenanceTime`, e.message);
+    return cwr.errorWebResp(
+      res,
+      500,
+      `E0000 - getNextMaintenanceTime`,
+      e.message,
+    );
   }
 };
 
@@ -195,7 +242,6 @@ const getAccountInfo = async (req, res) => {
     return cwr.errorWebResp(res, 500, `E0000 - getAccountInfo`, e.message);
   }
 };
-
 
 module.exports = {
   tronSendRawTransaction,
@@ -214,5 +260,4 @@ module.exports = {
   getNextMaintenanceTime,
   postGetReward,
   postUnFreeze,
-
 };

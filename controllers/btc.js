@@ -1,7 +1,7 @@
-const cwr = require('../utils/createWebResp');
 const bitcoin = require('bitcoinjs-lib');
 const bip39 = require('bip39');
 const axios = require('axios');
+const cwr = require('../utils/createWebResp');
 
 const postDecodeMnemonic = async (req, res) => {
   try {
@@ -23,10 +23,10 @@ const postDecodeMnemonic = async (req, res) => {
     const hdMaster = bitcoin.bip32.fromSeed(seed, bitcoinNetwork); // bitcoin, testnet, regtest
     const keyPair = hdMaster.derivePath(path); // ("m/44'/0'/0'")
     // const p2pkh = bitcoin.payments.p2pkh({pubkey: keyPair.publicKey, network: bitcoin.networks.bitcoin})
-    const address = bitcoin.payments.p2pkh({
+    const {address} = bitcoin.payments.p2pkh({
       pubkey: keyPair.publicKey,
       network: bitcoinNetwork,
-    }).address;
+    });
     const privateKey = keyPair.toWIF();
     // const privateKey = keyPair.privateKey.toString('hex').toString('base64');
     return cwr.createWebResp(res, 200, {address, privateKey, path});
@@ -73,7 +73,7 @@ const postWifToPublic = async (req, res) => {
 
 const getBlockchainInfo = async (req, res) => {
   try {
-    const client = req.client;
+    const {client} = req;
     const response = await client.getBlockchainInfo();
     return cwr.createWebResp(res, 200, {...response});
   } catch (e) {
@@ -99,7 +99,7 @@ const getBlockHash = async (req, res) => {
 
 const getNetworkInfo = async (req, res) => {
   try {
-    const client = req.client;
+    const {client} = req;
     const response = await client.getNetworkInfo();
     return cwr.createWebResp(res, 200, {...response});
   } catch (e) {
@@ -143,7 +143,7 @@ const getBalance = async (req, res) => {
     const response = await axios.get(
       `https://blockchain.info/rawaddr/${address}`,
     );
-    const data = response.data;
+    const {data} = response;
     return cwr.createWebResp(res, 200, {...data});
   } catch (e) {
     return cwr.errorWebResp(res, 500, 'E0000 - getBalance', e.message);
@@ -152,7 +152,7 @@ const getBalance = async (req, res) => {
 
 const getAddressInfo = async (req, res) => {
   try {
-    const client = req.client;
+    const {client} = req;
     const {address} = req.query;
     const response = await client.getAddressInfo(address);
     return cwr.createWebResp(res, 200, {...response});
@@ -163,7 +163,7 @@ const getAddressInfo = async (req, res) => {
 
 const postLoadWallet = async (req, res) => {
   try {
-    const client = req.client;
+    const {client} = req;
     const {walletName} = req.body;
     const response = await client.loadWallet(walletName);
     return cwr.createWebResp(res, 200, {...response});
@@ -174,7 +174,7 @@ const postLoadWallet = async (req, res) => {
 
 const postUnloadWallet = async (req, res) => {
   try {
-    const client = req.client;
+    const {client} = req;
     const {walletName} = req.body;
     const response = await client.unloadWallet(walletName);
     return cwr.createWebResp(res, 200, {...response});

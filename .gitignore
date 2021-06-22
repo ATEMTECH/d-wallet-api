@@ -416,3 +416,4 @@ db/data-prod
 db/mongo-init-dev.js
 db/mongo-init-local.js
 db/mongo-init-prod.js
+db/docker-compose

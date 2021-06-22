@@ -35,15 +35,15 @@ const postApprove = async (req, res) => {
       req.web3.eth.accounts.privateKeyToAccount(myWalletPrivateKey);
     const tokenContract = new req.web3.eth.Contract(
       tokenABI.AaveABI,
-      aave.addressSwitch[req.endpoint]['stkaave'],
+      aave.addressSwitch[req.endpoint].stkaave,
     );
     const standardContract = new req.web3.eth.Contract(
       StandardTokenABI.StandardABI,
-      aave.addressSwitch[req.endpoint]['stkaave'],
+      aave.addressSwitch[req.endpoint].stkaave,
     );
-    let contractRawTx = await tokenContract.methods
+    const contractRawTx = await tokenContract.methods
       .approve(
-        aave.addressSwitch[req.endpoint]['stkaave'],
+        aave.addressSwitch[req.endpoint].stkaave,
         req.web3.utils.toHex(
           '115792089237316195423570985008687907853269984665640564039457584007913129639935',
         ),
@@ -55,7 +55,7 @@ const postApprove = async (req, res) => {
         req.web3.utils.toWei(gasPrice.toString(), 'gwei'),
       ),
       gasLimit: req.web3.utils.toHex(gasLimit?.toString()),
-      to: aave.addressSwitch[req.endpoint]['aave'],
+      to: aave.addressSwitch[req.endpoint].aave,
       from: myWalletAddress,
       data: contractRawTx,
       value: '0x0',
@@ -82,20 +82,20 @@ const postStake = async (req, res) => {
 
     const tokenContract = new req.web3.eth.Contract(
       tokenABI.AaveABI,
-      aave.addressSwitch[req.endpoint]['stkaave'],
+      aave.addressSwitch[req.endpoint].stkaave,
     );
     const standardContract = new req.web3.eth.Contract(
       StandardTokenABI.StandardABI,
-      aave.addressSwitch[req.endpoint]['stkaave'],
+      aave.addressSwitch[req.endpoint].stkaave,
     );
     const decimal = Math.pow(
       10,
       await standardContract.methods.decimals().call(),
     );
-    let totalAmount = (decimal * amountToken).toLocaleString('fullwide', {
+    const totalAmount = (decimal * amountToken).toLocaleString('fullwide', {
       useGrouping: false,
     });
-    let contractRawTx = await tokenContract.methods
+    const contractRawTx = await tokenContract.methods
       .stake(myWalletAddress, req.web3.utils.toHex(totalAmount))
       .encodeABI();
 
@@ -104,7 +104,7 @@ const postStake = async (req, res) => {
         req.web3.utils.toWei(gasPrice.toString(), 'gwei'),
       ),
       gasLimit: req.web3.utils.toHex(gasLimit?.toString()),
-      to: aave.addressSwitch[req.endpoint]['stkaave'],
+      to: aave.addressSwitch[req.endpoint].stkaave,
       from: myWalletAddress,
       data: contractRawTx,
       value: '0x0',
@@ -133,12 +133,12 @@ const postClaimRewards = async (req, res) => {
 
     const tokenContract = new req.web3.eth.Contract(
       tokenABI.AaveABI,
-      aave.addressSwitch[req.endpoint]['stkaave'],
+      aave.addressSwitch[req.endpoint].stkaave,
     );
-    let getTotalRewardsBalance = await tokenContract.methods
+    const getTotalRewardsBalance = await tokenContract.methods
       .getTotalRewardsBalance(myWalletAddress)
       .call();
-    let claimRewards = await tokenContract.methods
+    const claimRewards = await tokenContract.methods
       .claimRewards(myWalletAddress, getTotalRewardsBalance)
       .encodeABI();
 
@@ -147,7 +147,7 @@ const postClaimRewards = async (req, res) => {
         req.web3.utils.toWei(gasPrice.toString(), 'gwei'),
       ),
       gasLimit: req.web3.utils.toHex(gasLimit?.toString()),
-      to: aave.addressSwitch[req.endpoint]['stkaave'],
+      to: aave.addressSwitch[req.endpoint].stkaave,
       from: myWalletAddress,
       data: claimRewards,
       value: '0x0',
@@ -170,9 +170,9 @@ const getAvailableStakingReward = async (req, res) => {
 
     const tokenContract = new req.web3.eth.Contract(
       tokenABI.AaveABI,
-      aave.addressSwitch[req.endpoint]['stkaave'],
+      aave.addressSwitch[req.endpoint].stkaave,
     );
-    let getTotalRewardsBalance = await tokenContract.methods
+    const getTotalRewardsBalance = await tokenContract.methods
       .getTotalRewardsBalance(myWalletAddress)
       .call();
     return cwr.createWebResp(
@@ -202,20 +202,20 @@ const postRedeem = async (req, res) => {
 
     const tokenContract = new req.web3.eth.Contract(
       tokenABI.AaveABI,
-      aave.addressSwitch[req.endpoint]['stkaave'],
+      aave.addressSwitch[req.endpoint].stkaave,
     );
     const standardContract = new req.web3.eth.Contract(
       StandardTokenABI.StandardABI,
-      aave.addressSwitch[req.endpoint]['stkaave'],
+      aave.addressSwitch[req.endpoint].stkaave,
     );
     const decimal = Math.pow(
       10,
       await standardContract.methods.decimals().call(),
     );
-    let totalAmount = (decimal * amountToken).toLocaleString('fullwide', {
+    const totalAmount = (decimal * amountToken).toLocaleString('fullwide', {
       useGrouping: false,
     });
-    let contractRawTx = await tokenContract.methods
+    const contractRawTx = await tokenContract.methods
       .redeem(myWalletAddress, req.web3.utils.toHex(totalAmount))
       .encodeABI();
 
@@ -224,7 +224,7 @@ const postRedeem = async (req, res) => {
         req.web3.utils.toWei(gasPrice.toString(), 'gwei'),
       ),
       gasLimit: req.web3.utils.toHex(gasLimit?.toString()),
-      to: aave.addressSwitch[req.endpoint]['stkaave'],
+      to: aave.addressSwitch[req.endpoint].stkaave,
       from: myWalletAddress,
       data: contractRawTx,
       value: '0x0',
@@ -247,21 +247,21 @@ const postCooldown = async (req, res) => {
 
     const tokenContract = new req.web3.eth.Contract(
       tokenABI.AaveABI,
-      aave.addressSwitch[req.endpoint]['stkaave'],
+      aave.addressSwitch[req.endpoint].stkaave,
     );
     const standardContract = new req.web3.eth.Contract(
       StandardTokenABI.StandardABI,
-      aave.addressSwitch[req.endpoint]['stkaave'],
+      aave.addressSwitch[req.endpoint].stkaave,
     );
 
-    let contractRawTx = await tokenContract.methods.cooldown().encodeABI();
+    const contractRawTx = await tokenContract.methods.cooldown().encodeABI();
 
     const rawTx = {
       gasPrice: req.web3.utils.toHex(
         req.web3.utils.toWei(gasPrice.toString(), 'gwei'),
       ),
       gasLimit: req.web3.utils.toHex(gasLimit?.toString()),
-      to: aave.addressSwitch[req.endpoint]['stkaave'],
+      to: aave.addressSwitch[req.endpoint].stkaave,
       from: myWalletAddress,
       data: contractRawTx,
       value: '0x0',

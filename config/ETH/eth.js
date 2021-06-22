@@ -2,11 +2,12 @@ const switchBaseUrl = (network) => {
   const endpoint = ethereumEndpoint[network];
   if (endpoint) {
     return {custom: false, baseUrl: endpoint};
-  } else if (network.indexOf('http') > -1) {
-    return {custom: true, baseUrl: network};
-  } else {
-    throw 'switchBaseUrl : endpoint error (' + network + ')';
   }
+  if (network.indexOf('http') > -1) {
+    return {custom: true, baseUrl: network};
+  }
+  throw `switchBaseUrl : endpoint error (${network})`;
+
   /*
   switch (network) {
     default:

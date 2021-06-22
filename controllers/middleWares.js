@@ -1,9 +1,5 @@
 const StellarSdk = require('stellar-sdk');
 const StellarHDWallet = require('stellar-hd-wallet');
-const cwr = require('../utils/createWebResp');
-const stellarConfig = require('../config/XLM/stellar');
-const eth = require('../config/ETH/eth');
-const aave = require('../config/AAVE/aave');
 const Web3 = require('web3');
 const Client = require('bitcoin-core');
 const {
@@ -15,9 +11,12 @@ const {
   Market,
 } = require('@aave/protocol-js');
 const TronWeb = require('tronweb');
+const cwr = require('../utils/createWebResp');
+const stellarConfig = require('../config/XLM/stellar');
+const eth = require('../config/ETH/eth');
+const aave = require('../config/AAVE/aave');
 
-
-////////////////////// Middleware for XLM //////////////////////
+/// /////////////////// Middleware for XLM //////////////////////
 const isValidMnemonic = async (req, res, next) => {
   try {
     if (!StellarHDWallet.validateMnemonic(req.body.mnemonic)) {
@@ -78,7 +77,7 @@ const xlmAsset = async (req, res, next) => {
   }
 };
 
-////////////////////// Middleware for ETH //////////////////////
+/// /////////////////// Middleware for ETH //////////////////////
 const web3 = async (req, res, next) => {
   try {
     req.endpoint = req.body.endpoint?.trim() || req.query.endpoint?.trim();
@@ -92,7 +91,13 @@ const web3 = async (req, res, next) => {
       );
     }
     req.web3 = new Web3(req.httpProvider);
-    const blockInfo = await req.web3.eth.net.getId(); // network number
+
+    // Define ETH network name
+    let network = await req.web3.eth.net.getNetworkType();
+    if (network === 'main') {
+      network = 'mainnet';
+    }
+    req.network = network;
     next();
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - infuraBaseUrl`, e.message);
@@ -146,7 +151,7 @@ const etherscan = async (req, res, next) => {
   }
 };
 
-////////////////////// Middleware for BTC //////////////////////
+/// /////////////////// Middleware for BTC //////////////////////
 const btcNetwork = async (req, res, next) => {
   try {
     const network = req.body.network || req.query.network;
@@ -193,7 +198,7 @@ const btcNetwork = async (req, res, next) => {
 
 const btcLastBlockHash = async (req, res, next) => {
   try {
-    const client = req.client;
+    const {client} = req;
     const response = await client.getBlockchainInfo();
     const lastBlockHash = response.bestblockhash;
     const lastBlockNumber = response.blocks;
@@ -205,7 +210,7 @@ const btcLastBlockHash = async (req, res, next) => {
   }
 };
 
-////////////////////// Middleware for Aave //////////////////////
+/// /////////////////// Middleware for Aave //////////////////////
 const aaveNetwork = async (req, res, next) => {
   try {
     const {stake} = req.query;
@@ -218,20 +223,19 @@ const aaveNetwork = async (req, res, next) => {
   }
 };
 
-////////////////////// Middleware for Tron //////////////////////
+/// /////////////////// Middleware for Tron //////////////////////
 const tronNetwork = async (req, res, next) => {
   try {
     req.tronWeb = new TronWeb({
       fullHost: 'https://api.trongrid.io',
-      headers: { "TRON-PRO-API-KEY": process.env.TRONGRID_PUBLIC_KEY },
-      //privateKey: 'your private key'
+      headers: {'TRON-PRO-API-KEY': process.env.TRONGRID_PUBLIC_KEY},
+      // privateKey: 'your private key'
     });
     next();
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - tronNetwork`, e.message);
   }
 };
-
 
 const tronSendRawTransaction = async (req, res) => {
   try {
@@ -256,5 +260,5 @@ module.exports = {
   aaveNetwork,
   btcLastBlockHash,
   tronNetwork,
-  tronSendRawTransaction
+  tronSendRawTransaction,
 };

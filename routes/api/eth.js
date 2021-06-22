@@ -50,4 +50,6 @@ router.post('/addressFromPrivateKey', ethController.postAddressFromPrivate);
 
 router.get('/getAbi', mw.etherscan, ethController.getAbi);
 
+router.post('/syncBlock', mw.web3, ethController.postSyncBlock);
+
 module.exports = router;
