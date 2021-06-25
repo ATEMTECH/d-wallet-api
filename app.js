@@ -41,6 +41,7 @@ const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
 const assetsRouter = require('./routes/api/assets');
+const watchlistRouter = require('./routes/api/watchlist');
 const btcRouter = require('./routes/api/btc');
 const xlmRouter = require('./routes/api/xlm');
 const ethRouter = require('./routes/api/eth');
@@ -73,6 +74,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const version = '/v1';
 
 app.use('/', indexRouter);
+app.use(`${version}/watchlist`, watchlistRouter);
 app.use(`${version}/assets`, assetsRouter);
 app.use(`${version}/btc`, btcRouter);
 app.use(`${version}/xlm`, xlmRouter);

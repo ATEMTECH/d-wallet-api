@@ -1,5 +1,5 @@
 // erc20 Standard Function
-exports.StandardABI = [
+const StandardABI = [
   {
     constant: true,
     inputs: [],
@@ -268,3 +268,7 @@ exports.StandardABI = [
     type: 'function',
   },
 ];
+
+module.exports = {
+  StandardABI,
+};

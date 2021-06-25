@@ -22,6 +22,14 @@ const switchBaseUrl = (network) => {
   */
 };
 
+/*
+ * COMMON RPC PORT
+ * mainnet: 8545
+ * ropsten: 8548
+ * kovan:
+ * rinkeby: 8547
+ * goerli: 8546
+ */
 const etherscanEndpoints = ['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'];
 
 const defaultGasAvg = 60000;

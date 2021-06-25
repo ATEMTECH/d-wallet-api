@@ -1,4 +1,4 @@
-exports.AaveABI = [
+const AaveABI = [
   {
     inputs: [
       {
@@ -1917,3 +1917,7 @@ exports.AaveABI = [
     type: 'function',
   },
 ];
+
+module.exports = {
+  AaveABI,
+};

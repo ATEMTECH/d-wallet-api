@@ -451,18 +451,39 @@ const getAbi = async (req, res) => {
  */
 const postSyncBlock = async (req, res) => {
   try {
-    const {blockNumber} = req.query;
+    const {syncing, blockNumber, syncDelay} = req.body;
     const {web3, network} = req;
-    // const EthBlocksDoc = await ethBlockService.syncGetBlock(network, blockNumber, hash, transactions);
-    // const syncGetBlock = new SyncGetBlock();
-    // const timerId = syncGetBlock.web3SetInterval(web3, blockNumber);
-
-    const ethBlockDoc = await ethBlockService.increaseBlockIndex(
+    const blockInfo = await web3.eth.getBlock(blockNumber);
+    // connection or sync error
+    if (!blockInfo) {
+      return cwr.errorWebResp(res, 500, 'E0000 - No Blockinfo');
+    }
+    // not synced
+    if (blockInfo.number <= 0) {
+      return cwr.errorWebResp(res, 500, 'E0000 - Not synced');
+    }
+    const ethBlockDoc = await ethBlockService.updateBlockIndex(
       'ETH',
       network,
+      blockNumber,
+      syncing,
+      syncDelay,
     );
-
-    return cwr.createWebResp(res, 200, {success: {...ethBlockDoc}});
+    const {blockIndex} = ethBlockDoc;
+    const ethBlocksDoc = await ethBlockService.updateETHBlockInfo(
+      blockIndex,
+      network,
+      blockInfo.transactions,
+    );
+    const syncGetBlock = new SyncGetBlock(
+      'ETH',
+      network,
+      true,
+      blockNumber,
+      syncDelay,
+    );
+    const timerId = syncGetBlock.web3SetInterval(web3, network, blockNumber);
+    return cwr.createWebResp(res, 200, {success: {...ethBlocksDoc}});
   } catch (e) {
     return cwr.errorWebResp(res, 500, 'E0000 - postSyncBlock', e || e.message);
   }

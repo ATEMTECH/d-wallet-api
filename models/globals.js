@@ -16,6 +16,11 @@ const globalSchema = Schema(
       type: Number,
       default: 0,
     },
+    syncing: {
+      type: Boolean,
+      default: false,
+    },
+    // syncing delay for interval, milliseconds.
     syncDelay: {
       type: Number,
       default: 1000,

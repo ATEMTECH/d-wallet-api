@@ -21,4 +21,4 @@ const errorWebResp = (res, code, errorMessage, errorData) => {
 module.exports = {
   createWebResp,
   errorWebResp,
-}
+};
