@@ -30,6 +30,8 @@ checkEnv([
   'MONGO_DB_NAME',
   'MONGO_DB_USER',
   'MONGO_DB_PASSWORD',
+  'GMAIL_USER',
+  'GMAIL_APP_PASS',
 ]);
 
 const createError = require('http-errors');

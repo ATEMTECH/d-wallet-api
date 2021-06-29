@@ -3,8 +3,9 @@ const txInformHtml = (network, msg) => `
 <head>
 </head>
 <body>
-ETH Transaction alert<br>
-<p>NETWORK</p>
+<h1>ETH Transaction alert</h1>
+<br>
+<h1>NETWORK</h1>
 <h2>${msg}</h2>
 </body>
 </html>
