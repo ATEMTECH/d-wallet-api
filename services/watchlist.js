@@ -45,9 +45,16 @@ const getWatchlist = (symbol, network) =>
     network,
   }).lean();
 
+const getWatchListByEmail = (address, network) =>
+  Watchlist.find({
+    address,
+    network,
+  }).lean();
+
 module.exports = {
   updateWatchlist,
   findWatchlistByTaskId,
   deleteWatchlistById,
   getWatchlist,
+  getWatchListByEmail,
 };

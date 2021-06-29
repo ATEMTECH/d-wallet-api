@@ -23,6 +23,7 @@
     "ethers": "^5.3.1",
     "etherscan-api": "^10.0.5",
     "express": "~4.17.1",
+    "gmail-send": "^1.8.10",
     "http-errors": "~1.8.0",
     "keythereum": "^1.2.0",
     "mongoose": "^5.12.14",

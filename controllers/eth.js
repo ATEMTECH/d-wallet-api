@@ -6,6 +6,7 @@ const axios = require('axios');
 const fs = require('fs');
 const eth = require('../config/ETH/eth');
 const ethBlockService = require('../services/ethBlock');
+const globalService = require('../services/global');
 const {StandardABI} = require('../config/ETH/StandardTokenABI');
 const cwr = require('../utils/createWebResp');
 const {SyncGetBlock} = require('../utils/eth/SyncGetBlock');
@@ -453,6 +454,10 @@ const postSyncBlock = async (req, res) => {
   try {
     const {syncing, blockNumber, syncDelay} = req.body;
     const {web3, network} = req;
+    const isSyncing = await globalService.checkIsSyncing('ETH', network);
+    if (isSyncing) {
+      return cwr.createWebResp(res, 200, {...isSyncing});
+    }
     const blockInfo = await web3.eth.getBlock(blockNumber);
     // connection or sync error
     if (!blockInfo) {
@@ -462,7 +467,7 @@ const postSyncBlock = async (req, res) => {
     if (blockInfo.number <= 0) {
       return cwr.errorWebResp(res, 500, 'E0000 - Not synced');
     }
-    const ethBlockDoc = await ethBlockService.updateBlockIndex(
+    const ethBlockDoc = await globalService.updateBlockIndex(
       'ETH',
       network,
       blockNumber,
@@ -483,7 +488,7 @@ const postSyncBlock = async (req, res) => {
       syncDelay,
     );
     const timerId = syncGetBlock.web3SetInterval(web3, network, blockNumber);
-    return cwr.createWebResp(res, 200, {success: {...ethBlocksDoc}});
+    return cwr.createWebResp(res, 200, {...ethBlocksDoc});
   } catch (e) {
     return cwr.errorWebResp(res, 500, 'E0000 - postSyncBlock', e || e.message);
   }
