@@ -1,5 +1,5 @@
 class Watchlist {
-  static watchlistsToEmails = (watchlists) => {
+  static toEmails = (watchlists) => {
     const emails = [];
     watchlists.find((o, i) => {
       emails.push(o.callbackEmail);
@@ -7,7 +7,7 @@ class Watchlist {
     return emails;
   };
 
-  static watchlistsToCallbackUrls = (watchlists) => {
+  static toCallbackUrls = (watchlists) => {
     const callbackUrls = [];
     watchlists.find((o, i) => {
       callbackUrls.push(o.callbackUrl);

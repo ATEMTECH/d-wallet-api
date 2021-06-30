@@ -10,11 +10,12 @@ const globalService = require('../services/global');
 const {StandardABI} = require('../config/ETH/StandardTokenABI');
 const cwr = require('../utils/createWebResp');
 const {SyncGetBlock} = require('../utils/eth/SyncGetBlock');
-let subscribe = {
-  "logs": undefined,
-  "pendingTransactions": undefined,
-  "newBlockHeaders": undefined,
-  "syncing": undefined,
+
+const subscribe = {
+  logs: undefined,
+  pendingTransactions: undefined,
+  newBlockHeaders: undefined,
+  syncing: undefined,
 };
 
 const postDecodeMnemonic = async (req, res) => {
@@ -64,12 +65,7 @@ const getEtherBalance = async (req, res) => {
 
 const postSendEther = async (req, res) => {
   try {
-    const {
-      toWalletAddress,
-      amountEther,
-      gasPrice,
-      gasLimit,
-    } = req.body;
+    const {toWalletAddress, amountEther, gasPrice, gasLimit} = req.body;
 
     const rawTx = {
       from: req.myWalletAddress,
@@ -83,8 +79,9 @@ const postSendEther = async (req, res) => {
       gasLimit: req.web3.utils.toHex(gasLimit?.toString()),
     };
 
-    const account =
-      req.web3.eth.accounts.privateKeyToAccount(req.myWalletPrivateKey);
+    const account = req.web3.eth.accounts.privateKeyToAccount(
+      req.myWalletPrivateKey,
+    );
     const signedTx = await account.signTransaction(rawTx);
     const txInfo = await req.web3.eth.sendSignedTransaction(
       signedTx.rawTransaction,
@@ -97,18 +94,10 @@ const postSendEther = async (req, res) => {
 
 const postSendToken = async (req, res) => {
   try {
-    const {
-      toWalletAddress,
-      amountToken,
-      gasPrice,
-      gasLimit,
-      contractAddress,
-    } = req.body;
+    const {toWalletAddress, amountToken, gasPrice, gasLimit, contractAddress} =
+      req.body;
 
-    const contract = new req.web3.eth.Contract(
-      StandardABI,
-      contractAddress,
-    );
+    const contract = new req.web3.eth.Contract(StandardABI, contractAddress);
     const decimal = Math.pow(10, await contract.methods.decimals().call());
     const totalAmount = (decimal * amountToken).toLocaleString('fullwide', {
       useGrouping: false,
@@ -127,8 +116,9 @@ const postSendToken = async (req, res) => {
       value: '0x0',
       data: contractRawTx,
     };
-    const account =
-      req.web3.eth.accounts.privateKeyToAccount(req.myWalletPrivateKey);
+    const account = req.web3.eth.accounts.privateKeyToAccount(
+      req.myWalletPrivateKey,
+    );
     const signedTx = await account.signTransaction(rawTx);
     const txInfo = await req.web3.eth.sendSignedTransaction(
       signedTx.rawTransaction,
@@ -487,37 +477,44 @@ const postSyncBlock = async (req, res) => {
 const getSubscription = async (req, res) => {
   try {
     const {type, status} = req.query;
-    if (type in subscribe)
-    {
-      if (status === "true")
-      {
-        subscribe[type] = subscribe[type] || req.web3WS.eth.subscribe(type, async (error, result) => {
-          if (!error) { // .on("data")와 같음.
-            console.log("[log]", req.endpoint, type, "result:", result);
-          } else { // .on("error")와 같음.
-            console.log("[log]", req.endpoint, type, "error:", error);
-          }
-        })
+    if (type in subscribe) {
+      if (status === 'true') {
+        subscribe[type] =
+          subscribe[type] ||
+          req.web3WS.eth.subscribe(type, async (error, result) => {
+            if (!error) {
+              // .on("data")와 같음.
+              console.log('[log]', req.endpoint, type, 'result:', result);
+            } else {
+              // .on("error")와 같음.
+              console.log('[log]', req.endpoint, type, 'error:', error);
+            }
+          });
         return cwr.createWebResp(res, 200, true);
       }
-      else
-      {
-        if (subscribe[type]){
-          await subscribe[type].unsubscribe();
-          subscribe[type] = undefined;
-        }
-        return cwr.createWebResp(res, 200, true);
+
+      if (subscribe[type]) {
+        await subscribe[type].unsubscribe();
+        subscribe[type] = undefined;
       }
+      return cwr.createWebResp(res, 200, true);
     }
-    else
-    {
-      return cwr.errorWebResp(res, 500, 'E0000 - getSubscription', type + " is not valid value.");
-    }
+
+    return cwr.errorWebResp(
+      res,
+      500,
+      'E0000 - getSubscription',
+      `${type} is not valid value.`,
+    );
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - getSubscription', e || e.message);
+    return cwr.errorWebResp(
+      res,
+      500,
+      'E0000 - getSubscription',
+      e || e.message,
+    );
   }
 };
-
 
 module.exports = {
   postDecodeMnemonic,

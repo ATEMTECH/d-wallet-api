@@ -3,10 +3,11 @@ const globalService = require('../../services/global');
 const watchlistService = require('../../services/watchlist');
 const {OptimizeInterval} = require('../OptimizeInterval');
 const winston = require('../../config/winston');
+const {etherscanTxUrl} = require('../../config/ETH/eth');
 const {txInform} = require('../../config/mailConfig');
 const {ETHParser} = require('./ETHParser');
 const {gmailSend} = require('../mail');
-const {postCallback} = require('../callback');
+const {Callback} = require('../Callback');
 const {txInformHtml} = require('../../views/email');
 const {Watchlist} = require('../watchlist/Watchlist');
 const {StandardABI} = require('../../config/ETH/StandardTokenABI');
@@ -19,6 +20,34 @@ class SyncGetBlock {
     this.blockNumber = blockNumber;
     this.syncDelay = syncDelay;
   }
+
+  sendCallbackEmail = async (
+    watchlistDoc,
+    symbol,
+    network,
+    from,
+    to,
+    value,
+    msg,
+    txHash,
+  ) => {
+    const emails = Watchlist.toEmails(watchlistDoc);
+    emails.map((email, index) =>
+      gmailSend(
+        email,
+        txInform.title,
+        txInformHtml(
+          symbol,
+          network,
+          from,
+          to,
+          value,
+          msg,
+          `${etherscanTxUrl(network)}/${txHash}`,
+        ),
+      ),
+    );
+  };
 
   web3SetInterval = (web3, network, blockNumber) => {
     const syncingBlock = async (
@@ -59,7 +88,7 @@ class SyncGetBlock {
           );
           const transactions = blockInfo?.transactions;
 
-          // save transactions in 'eth_blocks'
+          // SAVE transactions in 'eth_blocks'
           // await ethBlockService.updateETHBlockInfo(
           //   blockInfo.number,
           //   network,
@@ -107,23 +136,29 @@ class SyncGetBlock {
                   result.from.toLowerCase(),
                   network,
                 );
-                const msg = `Send ${tokenName} (${tokenSymbol}) (ERC20) <br>TxHash: ${
-                  result.hash
-                } Token Transfer <br> from: ${result.from}, value: ${
-                  web3.utils.toBN('0x' + value) / 10 ** 18
-                }`;
-                const emails = Watchlist.watchlistsToEmails(watchlistDoc);
-                emails.map((email, index) =>
-                  gmailSend(email, txInform.title, txInformHtml(network, msg)),
+                const tokenValue = web3.utils.toBN('0x' + value) / 10 ** 18;
+                const msg = `Send ERC20 ${tokenName}(${tokenSymbol}) from watchlist`;
+                await this.sendCallbackEmail(
+                  watchlistDoc,
+                  tokenSymbol,
+                  network,
+                  result.from,
+                  to,
+                  tokenValue,
+                  msg,
+                  result.hash,
                 );
-
-                // callbackBody['blockHash'] = result.blockHash;
-                // callbackBody['blockNumber'] = result.blockNumber;
-                // callbackBody['from'] = result.from;
-                // callbackBody['blockHash'] = result.blockHash;
-                const callbacks =
-                  Watchlist.watchlistsToCallbackUrls(watchlistDoc);
-                callbacks.map((url, index) => postCallback(url, {msg}));
+                const callback = new Callback(tokenSymbol, network);
+                const callbackBody = callback.body(
+                  result.from,
+                  to,
+                  tokenValue,
+                  result,
+                );
+                const callbacks = Watchlist.toCallbackUrls(watchlistDoc);
+                callbacks.map((url, index) =>
+                  Callback.postCallback(url, {callbackBody}),
+                );
               }
               // Receive ERC20
               if (
@@ -141,18 +176,29 @@ class SyncGetBlock {
                   to,
                   network,
                 );
-                const msg = `Receive ${tokenName} (${tokenSymbol}) (ERC20) <br>TxHash: ${
-                  result.hash
-                } Token Transfer <br> from: ${result.from}, value: ${
-                  web3.utils.toBN('0x' + value) / 10 ** 18
-                }`;
-                const emails = Watchlist.watchlistsToEmails(watchlistDoc);
-                emails.map((email, index) =>
-                  gmailSend(email, txInform.title, txInformHtml(network, msg)),
+                const tokenValue = web3.utils.toBN('0x' + value) / 10 ** 18;
+                const msg = `Receive ERC20 ${tokenName}(${tokenSymbol}) from watchlist`;
+                await this.sendCallbackEmail(
+                  watchlistDoc,
+                  tokenSymbol,
+                  network,
+                  result.from,
+                  to,
+                  tokenValue,
+                  msg,
+                  result.hash,
                 );
-                const callbacks =
-                  Watchlist.watchlistsToCallbackUrls(watchlistDoc);
-                callbacks.map((url, index) => postCallback(url, {msg}));
+                const callback = new Callback(tokenSymbol, network);
+                const callbackBody = callback.body(
+                  result.from,
+                  to,
+                  tokenValue,
+                  result,
+                );
+                const callbacks = Watchlist.toCallbackUrls(watchlistDoc);
+                callbacks.map((url, index) =>
+                  Callback.postCallback(url, {callbackBody}),
+                );
               }
               // Send ETH
               if (
@@ -163,16 +209,29 @@ class SyncGetBlock {
                   result.from.toLowerCase(),
                   network,
                 );
-                const msg = `Send ETH: ${
-                  result.blockNumber
-                } / ${result.to.toLowerCase()} in ${result.hash}`;
-                const emails = Watchlist.watchlistsToEmails(watchlistDoc);
-                emails.map((email, index) =>
-                  gmailSend(email, txInform.title, txInformHtml(network, msg)),
+                const msg = `Send ETH from watchlist`;
+                const callback = new Callback('ETH', network);
+                const ethValue = result.value / 10 ** 18;
+                await this.sendCallbackEmail(
+                  watchlistDoc,
+                  'ETH',
+                  network,
+                  result.from,
+                  result.to,
+                  ethValue,
+                  msg,
+                  result.hash,
                 );
-                const callbacks =
-                  Watchlist.watchlistsToCallbackUrls(watchlistDoc);
-                callbacks.map((url, index) => postCallback(url, {msg}));
+                const callbackBody = callback.body(
+                  result.from,
+                  result.to,
+                  ethValue,
+                  result,
+                );
+                const callbacks = Watchlist.toCallbackUrls(watchlistDoc);
+                callbacks.map((url, index) =>
+                  Callback.postCallback(url, {callbackBody}),
+                );
               }
               // Receive ETH
               if (addresses.includes(result.to.toLowerCase())) {
@@ -180,16 +239,29 @@ class SyncGetBlock {
                   result.to.toLowerCase(),
                   network,
                 );
-                const msg = `Receive ETH: ${
-                  result.blockNumber
-                } / ${result.to.toLowerCase()} in ${result.hash}`;
-                const emails = Watchlist.watchlistsToEmails(watchlistDoc);
-                emails.map((email, index) =>
-                  gmailSend(email, txInform.title, txInformHtml(network, msg)),
+                const msg = `Receive ETH from watchlist`;
+                const callback = new Callback('ETH', network);
+                const ethValue = result.value / 10 ** 18;
+                await this.sendCallbackEmail(
+                  watchlistDoc,
+                  'ETH',
+                  network,
+                  result.from,
+                  result.to,
+                  ethValue,
+                  msg,
+                  result.hash,
                 );
-                const callbacks =
-                  Watchlist.watchlistsToCallbackUrls(watchlistDoc);
-                callbacks.map((url, index) => postCallback(url, {msg}));
+                const callbackBody = callback.body(
+                  result.from,
+                  result.to,
+                  ethValue,
+                  result,
+                );
+                const callbacks = Watchlist.toCallbackUrls(watchlistDoc);
+                callbacks.map((url, index) =>
+                  Callback.postCallback(url, {callbackBody}),
+                );
               }
             }
           }

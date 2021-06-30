@@ -227,25 +227,23 @@ const postDelegate = async (req, res) => {
 
 const postClaimRewards = async (req, res) => {
   try {
-    const {
-      myWalletAddress,
-      myWalletPrivateKey,
-      gasPrice,
-      gasLimit,
-    } = req.body;
+    const {myWalletAddress, myWalletPrivateKey, gasPrice, gasLimit} = req.body;
 
-    const account = req.web3.eth.accounts.privateKeyToAccount(myWalletPrivateKey);
+    const account =
+      req.web3.eth.accounts.privateKeyToAccount(myWalletPrivateKey);
     const tokenContract = new req.web3.eth.Contract(
-      OrbsTokenABI.OrbsInfo["ABI"]["claim"],
-      OrbsTokenABI.OrbsInfo["address"]["claim"],
+      OrbsTokenABI.OrbsInfo.ABI.claim,
+      OrbsTokenABI.OrbsInfo.address.claim,
     );
-    const contractRawTx = await tokenContract.methods.claimStakingRewards(myWalletAddress).encodeABI();
+    const contractRawTx = await tokenContract.methods
+      .claimStakingRewards(myWalletAddress)
+      .encodeABI();
     const rawTx = {
       gasPrice: req.web3.utils.toHex(
         req.web3.utils.toWei(gasPrice.toString(), 'gwei'),
       ),
       gasLimit: req.web3.utils.toHex(gasLimit?.toString()),
-      to: OrbsTokenABI.OrbsInfo["address"]["claim"],
+      to: OrbsTokenABI.OrbsInfo.address.claim,
       from: myWalletAddress,
       data: contractRawTx,
       value: '0x0',
