@@ -15,6 +15,10 @@ const cwr = require('../utils/createWebResp');
 const stellarConfig = require('../config/XLM/stellar');
 const eth = require('../config/ETH/eth');
 const aave = require('../config/AAVE/aave');
+const ethers = require('ethers');
+
+const host_infura_ws = "wss://goerli.infura.io/ws/v3/abe5a2538d3a4164bae43ee02a85d426";
+
 
 /// /////////////////// Middleware for XLM //////////////////////
 const isValidMnemonic = async (req, res, next) => {
@@ -81,23 +85,22 @@ const xlmAsset = async (req, res, next) => {
 const web3 = async (req, res, next) => {
   try {
     req.endpoint = req.body.endpoint?.trim() || req.query.endpoint?.trim();
-    const parseEndpoint = eth.switchBaseUrl(req.endpoint);
-    req.baseUrl = parseEndpoint.baseUrl;
-    if (parseEndpoint.custom) {
-      req.httpProvider = new Web3.providers.HttpProvider(req.baseUrl);
-    } else {
-      req.httpProvider = new Web3.providers.HttpProvider(
-        req.baseUrl + process.env.INFURA_PROJECT_ID,
-      );
-    }
+    const parseEndpoint = eth.switchBaseUrl(req.endpoint, "rpc");
+    req.httpProvider = new Web3.providers.HttpProvider(parseEndpoint);
     req.web3 = new Web3(req.httpProvider);
-
-    // Define ETH network name
     let network = await req.web3.eth.net.getNetworkType();
     if (network === 'main') {
       network = 'mainnet';
     }
     req.network = network;
+
+    req.myWalletPrivateKey = req.body.myWalletPrivateKey?.trim() || req.query.myWalletPrivateKey?.trim();
+    if (req.myWalletPrivateKey)
+    {
+      const ethersAccount = new ethers.Wallet(req.myWalletPrivateKey);
+      req.myWalletAddress = ethersAccount.address;
+    }
+
     next();
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - infuraBaseUrl`, e.message);
@@ -150,6 +153,24 @@ const etherscan = async (req, res, next) => {
     return cwr.errorWebResp(res, 500, `E0000 - etherscan`, e.message);
   }
 };
+
+const web3WS = async (req, res, next) => {
+  try {
+    req.endpoint = req.body.endpoint?.trim() || req.query.endpoint?.trim();
+    const parseEndpoint = eth.switchBaseUrl(req.endpoint, "wss");
+    req.WebsocketProvider = new Web3.providers.WebsocketProvider(parseEndpoint);
+    req.web3WS = new Web3(req.WebsocketProvider);
+    let network = await req.web3WS.eth.net.getNetworkType();
+    if (network === 'main') {
+      network = 'mainnet';
+    }
+    req.network = network;
+    next();
+  } catch (e) {
+    return cwr.errorWebResp(res, 500, `E0000 - web3WS`, e.message);
+  }
+};
+
 
 /// /////////////////// Middleware for BTC //////////////////////
 const btcNetwork = async (req, res, next) => {
@@ -253,6 +274,7 @@ module.exports = {
   xlmNetwork,
   xlmAsset,
   web3,
+  web3WS,
   checkMnemonic,
   checkBTCNetwork,
   etherscan,

@@ -4,7 +4,6 @@ const StandardTokenABI = require('../config/ETH/StandardTokenABI');
 
 const getGuardians = async (req, res) => {
   try {
-
     return cwr.createWebResp(res, 200, true);
   } catch (e) {
     return cwr.errorWebResp(res, 500, `E0000 - getGuardianList`, e.message);
@@ -216,6 +215,41 @@ const postDelegate = async (req, res) => {
   }
 };
 
+const postClaimRewards = async (req, res) => {
+  try {
+    const {
+      myWalletAddress,
+      myWalletPrivateKey,
+      gasPrice,
+      gasLimit,
+    } = req.body;
+
+    const account = req.web3.eth.accounts.privateKeyToAccount(myWalletPrivateKey);
+    const tokenContract = new req.web3.eth.Contract(
+      OrbsTokenABI.OrbsInfo["ABI"]["claim"],
+      OrbsTokenABI.OrbsInfo["address"]["claim"],
+    );
+    const contractRawTx = await tokenContract.methods.claimStakingRewards(myWalletAddress).encodeABI();
+    const rawTx = {
+      gasPrice: req.web3.utils.toHex(
+        req.web3.utils.toWei(gasPrice.toString(), 'gwei'),
+      ),
+      gasLimit: req.web3.utils.toHex(gasLimit?.toString()),
+      to: OrbsTokenABI.OrbsInfo["address"]["claim"],
+      from: myWalletAddress,
+      data: contractRawTx,
+      value: '0x0',
+    };
+    const signedTx = await account.signTransaction(rawTx);
+    const txInfo = await req.web3.eth.sendSignedTransaction(
+      signedTx.rawTransaction,
+    );
+    return cwr.createWebResp(res, 200, txInfo);
+  } catch (e) {
+    return cwr.errorWebResp(res, 500, `E0000 - postDelegate`, e.message);
+  }
+};
+
 module.exports = {
   getGuardians,
   getStakedInfo,
@@ -224,4 +258,5 @@ module.exports = {
   postDelegate,
   postStake,
   postUnstake,
+  postClaimRewards,
 };

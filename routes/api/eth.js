@@ -8,11 +8,7 @@ router.get('/etherBalance', mw.web3, ethController.getEtherBalance);
 
 router.get('/tokenBalance', mw.web3, ethController.getTokenBalance);
 
-router.post(
-  '/decodeMnemonic',
-  mw.checkMnemonic,
-  ethController.postDecodeMnemonic,
-);
+router.post('/decodeMnemonic', mw.checkMnemonic, ethController.postDecodeMnemonic);
 
 router.post('/sendEther', mw.web3, ethController.postSendEther);
 
@@ -34,13 +30,11 @@ router.get('/gasPrice', mw.web3, ethController.getGasPrice);
 
 router.get('/gasPriceFromNet', ethController.getGasPriceFromNet);
 
+router.get('/gasPriceFromWeb3', ethController.getGasPriceFromWeb3);
+
 router.get('/txWithAddress', mw.etherscan, ethController.getTxWithAddress);
 
-router.get(
-  '/tokenTxWithAddress',
-  mw.etherscan,
-  ethController.getTokenTxWithAddress,
-);
+router.get('/tokenTxWithAddress', mw.etherscan, ethController.getTokenTxWithAddress);
 
 router.get('/tx', mw.web3, ethController.getTx);
 
@@ -51,5 +45,8 @@ router.post('/addressFromPrivateKey', ethController.postAddressFromPrivate);
 router.get('/getAbi', mw.etherscan, ethController.getAbi);
 
 router.post('/syncBlock', mw.web3, ethController.postSyncBlock);
+
+router.get('/subscription', mw.web3WS, ethController.getSubscription);
+
 
 module.exports = router;
