@@ -1,24 +1,21 @@
-// const ETHBlocks = require('../libs/ethBlocks');
-const Global = require('../libs/global');
+const ETHBlock = require('../libs/ethBlock');
 
-// const syncGetBlock = (network, number, hash, transactions) =>
-//   ETHBlocks.findOneAndUpdate(network, number, hash, transactions)
-
-const increaseBlockIndex = (symbol, network) =>
-  Global.findOneAndUpdate(
+const updateETHBlockInfo = (number, network, transactions) =>
+  ETHBlock.findOneAndUpdate(
     {
-      symbol,
+      number,
       network,
     },
     {
-      $inc: {
-        blockIndex: +1,
+      $set: {
+        number,
+        network,
+        transactions,
       },
     },
     {upsert: true, new: true, useFindAndModify: false},
-  );
+  ).lean();
 
 module.exports = {
-  // syncGetBlock,
-  increaseBlockIndex,
+  updateETHBlockInfo,
 };
