@@ -13,12 +13,20 @@ const {Watchlist} = require('../watchlist/Watchlist');
 const {StandardABI} = require('../../config/ETH/StandardTokenABI');
 
 class SyncGetBlock {
-  constructor(symbol, network, syncing = false, blockNumber, syncDelay) {
+  constructor(
+    symbol,
+    network,
+    syncing = false,
+    blockNumber,
+    syncDelay,
+    endpoint,
+  ) {
     this.symbol = symbol; // such as... BTC, ETC, XLM, XRP, DOGE, AAVE
     this.network = network; // such as... PUBLIC, TESTNET, mainnet, ropsten, kovan, simnet
     this.syncing = syncing; // Boolean
     this.blockNumber = blockNumber;
     this.syncDelay = syncDelay;
+    this.endpoint = endpoint;
   }
 
   sendCallbackEmail = async (
@@ -49,7 +57,7 @@ class SyncGetBlock {
     );
   };
 
-  web3SetInterval = (web3, network, blockNumber) => {
+  web3SetInterval = (web3, network, blockNumber, endpoint) => {
     const syncingBlock = async (
       web3,
       network,
@@ -65,6 +73,7 @@ class SyncGetBlock {
         const blockInfo = await web3.eth.getBlock(blockNumber);
         // Error case
         if (!blockInfo || blockInfo.number <= 0) {
+          // 'blockInfo === null' means pending state
           this.syncDelay = OptimizeInterval.addInterval(syncDelay);
           await new Promise((r) => setTimeout(r, this.syncDelay));
           // await OptimizeInterval.sleep(this.syncDelay);
@@ -74,17 +83,19 @@ class SyncGetBlock {
             blockNumber,
             syncing,
             this.syncDelay,
+            this.endpoint,
           );
         } else {
           // Success case
           this.blockNumber += 1;
-          this.syncDelay = OptimizeInterval.subInterval(syncDelay);
+          // this.syncDelay = OptimizeInterval.subInterval(syncDelay);
           await globalService.updateBlockIndex(
             'ETH',
             network,
             blockInfo.number,
             syncing,
             this.syncDelay,
+            this.endpoint,
           );
           const transactions = blockInfo?.transactions;
 
@@ -105,7 +116,6 @@ class SyncGetBlock {
             addresses.push(watchlist['address']);
           }
           const promises = [];
-          let callbackBody = {};
           if (transactions && addresses) {
             transactions.map((tx) => {
               promises.push(web3.eth.getTransaction(tx));

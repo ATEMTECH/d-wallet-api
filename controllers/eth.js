@@ -432,12 +432,8 @@ const getAbi = async (req, res) => {
  */
 const postSyncBlock = async (req, res) => {
   try {
-    const {syncing, blockNumber, syncDelay} = req.body;
+    const {endpoint, syncing, blockNumber, syncDelay} = req.body;
     const {web3, network} = req;
-    const isSyncing = await globalService.checkIsSyncing('ETH', network);
-    if (isSyncing) {
-      return cwr.createWebResp(res, 200, {...isSyncing});
-    }
     const blockInfo = await web3.eth.getBlock(blockNumber);
     // connection or sync error
     if (!blockInfo) {
@@ -453,6 +449,7 @@ const postSyncBlock = async (req, res) => {
       blockNumber,
       syncing,
       syncDelay,
+      endpoint,
     );
     const {blockIndex} = ethBlockDoc;
     const ethBlocksDoc = await ethBlockService.updateETHBlockInfo(
@@ -466,8 +463,14 @@ const postSyncBlock = async (req, res) => {
       true,
       blockNumber,
       syncDelay,
+      endpoint,
     );
-    const timerId = syncGetBlock.web3SetInterval(web3, network, blockNumber);
+    const timerId = syncGetBlock.web3SetInterval(
+      web3,
+      network,
+      blockNumber,
+      endpoint,
+    );
     return cwr.createWebResp(res, 200, {...ethBlocksDoc});
   } catch (e) {
     return cwr.errorWebResp(res, 500, 'E0000 - postSyncBlock', e || e.message);

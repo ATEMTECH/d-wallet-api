@@ -8,12 +8,16 @@ const maxIDValue = 2147483647;
 const minIDValue = 0;
 const defaultWalletPath = "m/44'/60'/0'/0/";
 const ethereumEndpoint = (network, protocol) => {
-  if(protocol === "wss")
-    return "wss://" + network + ".infura.io/ws/v3/";
-  else if(protocol === "rpc")
-    return "https://" + network + ".infura.io/v3/";
-  else
-    return undefined;
+  if (protocol === 'wss') return `wss://${network}.infura.io/ws/v3/`;
+  if (protocol === 'rpc') return `https://${network}.infura.io/v3/`;
+  return undefined;
+};
+
+const etherscanWebUrl = (network) => {
+  if (network === 'mainnet' || network === 'main') {
+    return 'https://etherscan.io';
+  }
+  return `https://${network}.etherscan.io`;
 };
 
 const etherscanTxUrl = (network) => {

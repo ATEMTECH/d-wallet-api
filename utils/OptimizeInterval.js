@@ -1,5 +1,5 @@
 const MIN_SYNC_DELAY = 0; // must be MIN_SYNC_DELAY >= 0
-const MAX_SYNC_DELAY = 10000;
+const MAX_SYNC_DELAY = 3000;
 
 class OptimizeInterval {
   static subInterval(time) {
@@ -11,7 +11,7 @@ class OptimizeInterval {
 
   static addInterval(time) {
     if (time + 100 < MAX_SYNC_DELAY) {
-      return time + 2000;
+      return time + 500;
     }
     return time;
   }

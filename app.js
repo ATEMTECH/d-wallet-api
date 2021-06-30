@@ -86,6 +86,13 @@ app.use(`${version}/tron`, tronRouter);
 app.use(`${version}/atem`, atemRouter);
 app.use(`${version}/orbs`, orbsRouter);
 
+// Initial Syncing Service
+const {Syncing} = require('./utils/Syncing');
+const winston = require('./config/winston');
+
+const syncing = new Syncing('ETH');
+syncing.initialize('ETH').then((r) => winston.log.info(r));
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

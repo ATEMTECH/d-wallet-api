@@ -25,6 +25,10 @@ const globalSchema = Schema(
       type: Number,
       default: 1000,
     },
+    endpoint: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
