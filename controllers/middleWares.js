@@ -10,9 +10,6 @@ const eth = require('../config/ETH/eth');
 const aave = require('../config/AAVE/aave');
 const {etherscanWebUrl} = require('../config/ETH/eth');
 
-const host_infura_ws =
-  'wss://goerli.infura.io/ws/v3/abe5a2538d3a4164bae43ee02a85d426';
-
 /// /////////////////// Middleware for XLM //////////////////////
 const isValidMnemonic = async (req, res, next) => {
   try {
