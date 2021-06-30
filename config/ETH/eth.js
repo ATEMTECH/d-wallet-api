@@ -11,7 +11,7 @@ const defaultWalletPath = "m/44'/60'/0'/0/";
 const ethereumEndpoint = (network, protocol) => {
   if(protocol === "wss")
     return "wss://" + network + ".infura.io/ws/v3/";
-  else if(protocol == "rpc")
+  else if(protocol === "rpc")
     return "https://" + network + ".infura.io/v3/";
   else
     return undefined;
