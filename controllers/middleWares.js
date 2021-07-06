@@ -128,11 +128,11 @@ const etherscan = async (req, res, next) => {
       req.body.endpoint?.trim() ||
       req.query.endpoint?.trim() ||
       req.params.endpoint?.trim;
-    if (!eth.etherscanEndpoints.includes(endpoint)) {
+    if (eth.ethereumChainIDs[endpoint] <= 0) {
       return cwr.errorWebResp(
         res,
         500,
-        `E0000 - endpoint must be one of ${eth.etherscanEndpoints}`,
+        `E0000 - endpoint must be one of ${eth.ethereumChainIDs.keys}`,
       );
     }
     req.etherscan = require('etherscan-api').init(

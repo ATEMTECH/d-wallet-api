@@ -33,7 +33,12 @@ const postDecodeMnemonic = async (req, res) => {
     };
     return cwr.createWebResp(res, 200, body);
   } catch (e) {
-    return cwr.errorWebResp(res, 500, `E0000 - postDecodeMnemonic`, e.message);
+    return cwr.errorWebResp(
+      res,
+      500,
+      `E0000 - postDecodeMnemonic`,
+      e.message || e,
+    );
   }
 };
 
@@ -48,7 +53,12 @@ const getTokenBalance = async (req, res) => {
     const tokenSymbol = await contract.methods.symbol().call();
     return cwr.createWebResp(res, 200, {balance, tokenName, tokenSymbol});
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - getTokenBalance', e.message);
+    return cwr.errorWebResp(
+      res,
+      500,
+      'E0000 - getTokenBalance',
+      e.message || e,
+    );
   }
 };
 
@@ -59,7 +69,12 @@ const getEtherBalance = async (req, res) => {
     balance = req.web3.utils.fromWei(balance, 'ether');
     return cwr.createWebResp(res, 200, {balance});
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - getEtherBalance', e.message);
+    return cwr.errorWebResp(
+      res,
+      500,
+      'E0000 - getEtherBalance',
+      e.message || e,
+    );
   }
 };
 
@@ -88,7 +103,7 @@ const postSendEther = async (req, res) => {
     );
     return cwr.createWebResp(res, 200, txInfo);
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - postSendEther', e.message);
+    return cwr.errorWebResp(res, 500, 'E0000 - postSendEther', e.message || e);
   }
 };
 
@@ -125,7 +140,7 @@ const postSendToken = async (req, res) => {
     );
     return cwr.createWebResp(res, 200, txInfo);
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - postSendToken', e.message);
+    return cwr.errorWebResp(res, 500, 'E0000 - postSendToken', e.message || e);
   }
 };
 
@@ -158,7 +173,7 @@ const postSubscribe = async (req, res) => {
     // });
     return cwr.createWebResp(res, 200, {success: true});
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - postSubscribe', e.message);
+    return cwr.errorWebResp(res, 500, 'E0000 - postSubscribe', e.message || e);
   }
 };
 
@@ -179,7 +194,7 @@ const postGenerateMnemonic = async (req, res) => {
       res,
       500,
       'E0000 - postGenerateMnemonic',
-      e.message,
+      e.message || e,
     );
   }
 };
@@ -190,7 +205,12 @@ const getValidateMnemonic = async (req, res) => {
     const result = bip39.validateMnemonic(mnemonic);
     return cwr.createWebResp(res, 200, result);
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - GetValidateMnemonic', e.message);
+    return cwr.errorWebResp(
+      res,
+      500,
+      'E0000 - GetValidateMnemonic',
+      e.message || e,
+    );
   }
 };
 
@@ -205,7 +225,12 @@ const postDecodeKeystore = async (req, res) => {
     const privateKey = pk.toString('hex');
     return cwr.createWebResp(res, 200, {wallet, privateKey});
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - postDecodeKeystore', e.message);
+    return cwr.errorWebResp(
+      res,
+      500,
+      'E0000 - postDecodeKeystore',
+      e.message || e,
+    );
   }
 };
 
@@ -228,7 +253,7 @@ const postPrivateKeyToKeystore = async (req, res) => {
       res,
       500,
       'E0000 - postPrivateKeyToKeystore',
-      e.message,
+      e.message || e,
     );
   }
 };
@@ -300,7 +325,7 @@ const getGasPrice = async (req, res) => {
     lastGasPrice.transantionCount = txLength;
     return cwr.createWebResp(res, 200, lastGasPrice);
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - getGasPrice', e.message);
+    return cwr.errorWebResp(res, 500, 'E0000 - getGasPrice', e.message || e);
   }
 };
 
@@ -308,7 +333,7 @@ const getGasPriceFromWeb3 = async (req, res) => {
   try {
     return cwr.createWebResp(res, 200, await req.web3.eth.getGasPrice());
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - getGasPrice', e.message);
+    return cwr.errorWebResp(res, 500, 'E0000 - getGasPrice', e.message || e);
   }
 };
 
@@ -325,7 +350,12 @@ const getGasPriceFromNet = async (req, res) => {
     };
     return cwr.createWebResp(res, 200, prices);
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - getGasPriceFromNet', e.message);
+    return cwr.errorWebResp(
+      res,
+      500,
+      'E0000 - getGasPriceFromNet',
+      e.message || e,
+    );
   }
 };
 
@@ -352,7 +382,12 @@ const getTxWithAddress = async (req, res) => {
     }
     return cwr.createWebResp(res, 200, txlist.result);
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - getTxWithAddress', e.message);
+    return cwr.errorWebResp(
+      res,
+      500,
+      'E0000 - getTxWithAddress',
+      e.message || e,
+    );
   }
 };
 
@@ -374,7 +409,7 @@ const getTokenTxWithAddress = async (req, res) => {
       res,
       500,
       'E0000 - getTokenTxWithAddress',
-      e.message,
+      e.message || e,
     );
   }
 };
@@ -385,7 +420,7 @@ const getTx = async (req, res) => {
     const txInfo = await req.web3.eth.getTransaction(txHash);
     return cwr.createWebResp(res, 200, txInfo);
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - getTx', e.message);
+    return cwr.errorWebResp(res, 500, 'E0000 - getTx', e.message || e);
   }
 };
 
@@ -395,7 +430,7 @@ const getBlock = async (req, res) => {
     const blockInfo = await req.web3.eth.getBlock(blockHash);
     return cwr.createWebResp(res, 200, blockInfo);
   } catch (e) {
-    return cwr.errorWebResp(res, 500, 'E0000 - getBlock', e.message);
+    return cwr.errorWebResp(res, 500, 'E0000 - getBlock', e.message || e);
   }
 };
 
@@ -409,7 +444,7 @@ const postAddressFromPrivate = async (req, res) => {
       res,
       500,
       'E0000 - postAddressFromPrivate',
-      e.message,
+      e.message || e,
     );
   }
 };

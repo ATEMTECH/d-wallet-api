@@ -157,7 +157,7 @@ const getListWitnesses = async (req, res) => {
 const postUnFreeze = async (req, res, next) => {
   try {
     const {resource, ownerAddress, receiverAddress, options} = req.body;
-    if (resource != 'BANDWIDTH' || resource != 'ENERGY') {
+    if (resource !== 'BANDWIDTH' || resource !== 'ENERGY') {
       return cwr.errorWebResp(
         res,
         500,
